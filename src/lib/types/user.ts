@@ -2,9 +2,10 @@ import { DateTime } from "next-auth/providers/kakao";
 
 
 export type User = {
-    user_id: number;
-    username: string;
+    id: number;
+    name: string;
+    email: string;
     password: string;
     role: string;
-    created_at_user: string;
+    created_at: string;
 };

@@ -36,7 +36,7 @@ export default function LoginPage() {
     if (res?.ok) {
       // signIn เรียบร้อยแล้ว session จะอัปเดตโดยอัตโนมัติจาก useSession hook และ useEffect จะจัดการ redirect
     } else {
-      alert('รหัสผ่านหรืออีเมลไม่ถูกต้อง')
+      alert('รหัสผ่านหรือชื่อผู้ใช้ไม่ถูกต้อง')
     }
   }
 
@@ -45,11 +45,17 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-4xl w-full flex">
         {/* Left side - Isometric illustration */}
         <div
-          className="login-bg flex-1 relative bg-cover bg-center bg-no-repeat">
-          {/* Optional overlay for better text contrast */}
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          className="flex-1"
+          style={{
+            backgroundImage: "url('/images/2222.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            position: "relative",
+          }}
+        >
+          {/* Optional overlay */}
+          <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.2)" }}></div>
         </div>
-
 
         {/* Right side - Login form */}
         <div className="flex-1 p-8 flex flex-col justify-center">
@@ -57,7 +63,7 @@ export default function LoginPage() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">เข้าสู่ระบบ</h2>
 
             <div className="space-y-4">
-              {/* Username field */}
+              {/* email field */}
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input

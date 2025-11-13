@@ -1,61 +1,69 @@
-import NextAuth, { type NextAuthOptions, type User as NextAuthUser } from "next-auth"
+//src/app/api/auth/[...nextauth]/route.ts
+
+import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { db } from "@/lib/db"
-import bcrypt from "bcryptjs"
+import type { NextAuthOptions } from "next-auth"
+import { db } from "@/lib/db"  // path ตามที่ตั้งไฟล์จริง
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials): Promise<NextAuthUser | null> {
-        const { username, password } = credentials ?? {}
-        if (!username || !password) return null
+      async authorize(credentials) {
+        const { email, password } = credentials ?? {}
+        if (!email || !password) return null
 
+        // Query DB หา user ที่ตรงกับ email
         const [rows] = await db.query(
-          "SELECT * FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1",
-          [username]
-        )
-        const user = (rows as any[])[0]
-        if (!user) return null
+          "SELECT * FROM users WHERE email = ? LIMIT 1",
+          [email]
+        );
 
-        const isValid = await bcrypt.compare(password, user.password)
-        if (!isValid) return null
+        const users = rows as any[]; // cast type for convenience
+        if (users.length === 0) return null;
 
-        // คืนค่าเป็น NextAuthUser type
+        const user = users[0];
+
+        // ตรวจสอบ password ตรงกัน (ในตัวอย่างนี้ยังไม่ได้เข้ารหัสนะ)
+        if (user.password !== password) return null;
+
+        // ถ้าตรง ให้ return ข้อมูล user ที่ต้องการเก็บใน session
         return {
-          id: String(user.user_id),
-          name: user.username,
-          email: null,
+          id: user.id,
+          name: user.name,
+          email: user.email,
           role: user.role,
-          user_id: user.user_id,
-        } as NextAuthUser
+        };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role
-        token.user_id = (user as any).user_id
+        token.role = (user as any).role;
+        token.id = (user as any).id;
       }
       return token
     },
     async session({ session, token }) {
       if (token?.role && session.user) {
-        session.user.role = token.role as string
-        session.user.user_id = token.user_id as number
+        session.user.role = token.role as string;
+        session.user.id = token.id as number;
       }
       return session
     },
   },
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: { signIn: "/login" },
+  pages: {
+    signIn: "/login",
+  },
 }
 
 const handler = NextAuth(authOptions)
+
 export { handler as GET, handler as POST }

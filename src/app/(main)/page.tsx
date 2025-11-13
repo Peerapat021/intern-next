@@ -9,7 +9,7 @@ export default async function HomePage() {
     <div>
       {session ? (
         <div>
-          <p>ยินดีต้อนรับครับ {session.user?.username}</p>
+          <p>ยินดีต้อนรับครับ </p>
         </div>
       ) : (
         <div>

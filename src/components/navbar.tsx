@@ -13,7 +13,7 @@ export default function Nav() {
 
       {session?.user ? (
         <>
-          <span style={{ marginRight: '1rem' }}>👋 {session.user.username}</span>
+          <span style={{ marginRight: '1rem' }}> {session.user.name}</span>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
             style={{

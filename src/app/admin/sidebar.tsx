@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { FaBars, FaUser, FaHome, FaDoorOpen, FaBook } from "react-icons/fa";
+import { FaBars, FaUser, FaHome, FaDoorOpen, FaBook, FaBoxOpen } from "react-icons/fa";
 import SignOutButton from "./SingOutButton";
 
 const menuItems = [
   { name: "Dashboard", href: "/admin", icon: <FaHome /> },
-  { name: "Rooms", href: "/admin/rooms", icon: <FaDoorOpen /> },
-  { name: "Bookings", href: "/admin/bookings", icon: <FaBook /> },
+  { name: "Products", href: "/admin/products", icon: <FaBoxOpen /> },
   { name: "Users", href: "/admin/users", icon: <FaUser /> },
+  { name: "Product-logs", href: "/admin/product-logs", icon: <FaBook /> },
 ];
 
 export default function Sidebar({ user }: { user: any }) {
@@ -46,7 +46,7 @@ export default function Sidebar({ user }: { user: any }) {
               Admin Management
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              ระบบจัดการห้อง
+              ระบบจัดการสินค้า
             </p>
           </div>
 
