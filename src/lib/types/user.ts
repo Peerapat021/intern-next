@@ -7,5 +7,5 @@ export type User = {
     email: string;
     password: string;
     role: string;
-    created_at: string;
+    create_at_user: string;
 };

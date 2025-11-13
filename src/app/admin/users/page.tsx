@@ -1,7 +1,12 @@
-import React from 'react'
 
-export default function UserPage() {
+import UserTable from './UserTable'
+import { getUsers } from '@/lib/services/users/get'
+
+export default async function UserPage() {
+  const users = await getUsers();
   return (
-    <div>UserPage</div>
+    <section>
+      <UserTable users={users} />
+    </section>
   )
 }

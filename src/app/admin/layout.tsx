@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <Sidebar user={session.user} />
 
       {/* Main Content */}
-      <main className="flex-1 sm:ml-64 p-5 pt-[4rem] md:p-8">
+      <main className="flex-1 sm:ml-64 p-5 bg-gray-50 pt-[4rem] md:p-8 ">
         <div className="">{children}</div>
       </main>
     </div>
