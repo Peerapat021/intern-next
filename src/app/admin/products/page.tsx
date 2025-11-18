@@ -1,7 +1,12 @@
-import React from 'react'
 
-export default function ProductPage() {
+import ProductTable from './ProductTable'
+import { getProducts } from '@/lib/services/products/get'
+
+export default async function UserPage() {
+  const products = await getProducts();
   return (
-    <div>ProductPage</div>
+    <section>
+      <ProductTable products={products} />
+    </section>
   )
 }
