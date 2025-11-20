@@ -171,6 +171,7 @@ function UserTable({ categories }: { categories: any[] }) {
                                 onChange={e =>
                                     setNewCategoryData({ ...newCategoryData, category_name: e.target.value })
                                 }
+                                autoFocus
                                 className="w-full border rounded p-2"
                                 required
                             />
