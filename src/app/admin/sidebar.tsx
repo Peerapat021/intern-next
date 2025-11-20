@@ -8,6 +8,7 @@ import SignOutButton from "./SingOutButton";
 const menuItems = [
   { name: "Dashboard", href: "/admin", icon: <FaHome /> },
   { name: "Products", href: "/admin/products", icon: <FaBoxOpen /> },
+  { name: "Categories", href: "/admin/categories", icon: <FaBoxOpen /> },
   { name: "Users", href: "/admin/users", icon: <FaUser /> },
   { name: "Product-logs", href: "/admin/product-logs", icon: <FaBook /> },
 ];

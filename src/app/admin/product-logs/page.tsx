@@ -1,7 +1,11 @@
-import React from 'react'
+import ProductLogTable from "./ProductLogTable";
+import { getProductLogs } from "@/lib/services/productLog/get";
 
-export default function ProductLogPage() {
+export default async function ProductLogPage() {
+  const productLogs = await getProductLogs();
   return (
-    <div>ProductLogPage</div>
+    <section>
+      <ProductLogTable productLogs={productLogs} />
+    </section>
   )
 }
