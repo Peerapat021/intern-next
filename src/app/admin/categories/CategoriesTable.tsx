@@ -5,7 +5,7 @@ import { getCategories } from "@/lib/services/categories/get";
 import { useState, useEffect } from "react";
 import { getUsers } from "@/lib/services/users/get";
 import { deleteCategory } from "@/lib/services/categories/delete";
-import { updateCategoryById } from "@/lib/services/categories/put";
+import { updateCategory } from "@/lib/services/categories/put";
 import { postCategory } from "@/lib/services/categories/post";
 import { User } from "@/lib/types/user";
 
@@ -13,8 +13,13 @@ function UserTable({ categories }: { categories: any[] }) {
     const [dataCategories, setDataCategories] = useState(categories);
     const [dataUsers, setDataUsers] = useState<User[]>([]);
     const [newCategory, setNewCategory] = useState(false);
-
+    const [editCategory, setEditCategory] = useState<any | null>(null);
+    const [deletingCategory, setDeletingCategory] = useState<any | null>(null);
     const [newCategoryData, setNewCategoryData] = useState({
+        category_name: ""
+    });
+
+    const [editCategoryData, setEditCategoryData] = useState({
         category_name: ""
     });
 
@@ -38,6 +43,17 @@ function UserTable({ categories }: { categories: any[] }) {
     const openCreateModal = () => setNewCategory(true);
     const closeCreateModal = () => setNewCategory(false);
 
+    const openEditModal = (room: any) => {
+        setEditCategory(room);
+        setEditCategoryData({
+            category_name: room.category_name,
+        });
+    };
+    const closeEditModal = () => setEditCategory(null);
+
+    const openDeleteModal = (category: any) => setDeletingCategory(category);
+    const closeDeleteModal = () => setDeletingCategory(null);
+
     const fetchUsers = async () => {
         try {
             const data = await getUsers();
@@ -50,13 +66,43 @@ function UserTable({ categories }: { categories: any[] }) {
     const handleCreateCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await postCategory({ category_name: newCategoryData.category_name }); 
-            await fetchCategories(); 
+            await postCategory({ category_name: newCategoryData.category_name });
+            await fetchCategories();
             closeCreateModal();
             setNewCategoryData({ category_name: "" });
         } catch (err) {
             console.error("Error creating category:", err);
             alert("ไม่สามารถสร้างหมวดหมู่ได้");
+        }
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editCategory) return;
+
+        try {
+            await updateCategory({
+                category_id: editCategory.category_id,
+                category_name: editCategoryData.category_name,
+            });
+            await fetchCategories(); // โหลดข้อมูลล่าสุดหลังแก้ไข
+            closeEditModal();
+        } catch (err) {
+            console.error("Error updating category:", err);
+            alert("ไม่สามารถอัปเดตข้อมูลห้องได้");
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingCategory) return;
+
+        try {
+            await deleteCategory({ category_id: deletingCategory.category_id });
+            await fetchCategories(); // โหลดข้อมูลล่าสุดหลังลบ
+            closeDeleteModal();
+        } catch (err) {
+            console.error("Error deleting category:", err);
+            alert("ไม่สามารถลบหมวดหมู่ได้");
         }
     };
 
@@ -107,12 +153,20 @@ function UserTable({ categories }: { categories: any[] }) {
                             >
                                 <td className="p-4">{category.category_id}</td>
                                 <td className="p-4">{category.category_name}</td>
-                                <td className="p-4">{category.create_at_category}</td>
+                                <td className="p-4">
+                                    {new Date(category.create_at_category).toLocaleString("th-TH", {
+                                        day: "numeric",
+                                        month: "short",
+                                        year: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </td>
                                 <td className="p-4 flex gap-2">
-                                    <button className="text-blue-600 hover:text-blue-800 transition">
+                                    <button onClick={() => openEditModal(category)} className="text-blue-600 hover:text-blue-800 transition">
                                         <FaEdit />
                                     </button>
-                                    <button className="text-red-600 hover:text-red-800 transition">
+                                    <button onClick={() => openDeleteModal(category)} className="text-red-600 hover:text-red-800 transition">
                                         <FaTrash />
                                     </button>
                                 </td>
@@ -131,7 +185,7 @@ function UserTable({ categories }: { categories: any[] }) {
                     >
                         <div className="flex justify-between items-center mb-3">
                             <div className="flex items-center gap-2">
-                             
+
                                 <h2 className="font-semibold text-gray-800">
                                     {category.category_name || "ไม่ระบุชื่อ"}
                                 </h2>
@@ -160,7 +214,7 @@ function UserTable({ categories }: { categories: any[] }) {
 
             {/* Modal Create */}
             {newCategory && (
-                <div className="modal-overlay bg-black/20 fixed inset-0 flex justify-center items-center z-50">
+                <div className="modal-overlay bg-black/50 fixed inset-0 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg">
                         <h2 className="text-lg font-bold mb-4">สร้างหมวดหมู่ใหม่</h2>
                         <form onSubmit={handleCreateCategory} className="space-y-4">
@@ -192,6 +246,73 @@ function UserTable({ categories }: { categories: any[] }) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Edit */}
+            {editCategory && (
+                <div className="modal-overlay bg-black/50 fixed inset-0 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg">
+                        <h2 className="text-lg font-bold mb-4">แก้ไขหมวดหมู่</h2>
+                        <form onSubmit={handleUpdate} className="space-y-4">
+                            <input
+                                type="text"
+                                placeholder="ชื่อหมวดหมู่"
+                                value={editCategoryData.category_name}
+                                onChange={e =>
+                                    setEditCategoryData({ ...editCategoryData, category_name: e.target.value })
+                                }
+                                autoFocus
+                                className="w-full border rounded p-2"
+                                required
+                            />
+
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 bg-gray-300 rounded"
+                                    onClick={closeEditModal}
+                                >
+                                    ยกเลิก
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded"
+                                >
+                                    บันทึก
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Delete */}
+            {deletingCategory && (
+                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-sm shadow-lg">
+                        <h2 className="text-lg font-bold mb-4 text-red-600">
+                            ยืนยันการลบ
+                        </h2>
+                        <p className="mb-6">
+                            คุณต้องการลบหมวดหมู่นี้{" "}
+                            <span className="font-semibold">{deletingCategory.category_name}</span> หรือไม่?
+                        </p>
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                onClick={closeDeleteModal}
+                                className="px-4 py-2 bg-gray-300 rounded"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-500 text-white rounded"
+                            >
+                                ยืนยันลบ
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

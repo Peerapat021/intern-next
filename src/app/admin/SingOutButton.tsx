@@ -16,7 +16,7 @@ export default function SignOutButton() {
       type="button"
     >
       <FiLogOut className="mr-2" />
-      <span className="flex-1 ms-3 whitespace-nowrap">ออกจากระบบ</span>
+      <span className="flex-1 ms-3 whitespace-nowrap ">ออกจากระบบ</span>
     </button>
   );
 }

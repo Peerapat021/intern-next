@@ -2,10 +2,13 @@
 
 import { FaEdit, FaTrash, FaDownload, FaPlus, FaUser } from "react-icons/fa";
 import { getUsers } from "@/lib/services/users/get";
+import { postUser } from "@/lib/services/users/post";
 import { useState, useEffect } from "react";
 
 function UserTable({ users }: { users: any[] }) {
     const [dataUsers, setDataUsers] = useState(users);
+    const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: '' });
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const fetchUsers = async () => {
         try {
@@ -15,6 +18,21 @@ function UserTable({ users }: { users: any[] }) {
             console.error("ไม่สามารถโหลดห้องได้", err);
         }
     };
+
+    const handleAddUser = async (e: React.FormEvent) => {
+        e.preventDefault(); 
+        try {
+            await postUser(newUser);
+            setNewUser({ name: '', email: '', password: '', role: '' });
+            setIsCreateModalOpen(false); 
+            fetchUsers();
+        } catch (err: any) {
+            console.error("Error adding user:", err);
+            alert(err.message || "เพิ่มผู้ใช้ไม่สำเร็จ");
+        }
+    };
+    const openCreateModal = () => setIsCreateModalOpen(true);
+    const closeCreateModal = () => setIsCreateModalOpen(false);
 
     useEffect(() => {
         fetchUsers();
@@ -34,11 +52,11 @@ function UserTable({ users }: { users: any[] }) {
                             type="text"
                             placeholder="Search"
                             className="w-full md:w-[550px] border border-gray-400 p-2 rounded-sm"
-                             autoFocus
+                            autoFocus
                         />
                     </div>
                     <div className="flex flex-col md:flex-row gap-2">
-                        <button className="border border-gray-200 rounded-full p-2 px-4 flex gap-2 items-center text-gray-700 hover:bg-gray-50 transition">
+                        <button onClick={openCreateModal} className="border border-gray-200 rounded-full p-2 px-4 flex gap-2 items-center text-gray-700 hover:bg-gray-50 transition">
                             <FaPlus /> เพิ่มผู้ใช้
                         </button>
                         <button className="border border-gray-200 rounded-full p-2 px-4 flex gap-2 items-center bg-[#4e6cef] text-white hover:bg-[#3b5bd6] transition">
@@ -113,11 +131,10 @@ function UserTable({ users }: { users: any[] }) {
                         <p className="text-sm text-gray-600 mb-1">
                             <span className="font-medium">บทบาท:</span>{" "}
                             <span
-                                className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                                    user.role === "admin"
-                                        ? "bg-purple-100 text-purple-700"
-                                        : "bg-green-100 text-green-700"
-                                }`}
+                                className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${user.role === "admin"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "bg-green-100 text-green-700"
+                                    }`}
                             >
                                 {user.role}
                             </span>
@@ -129,6 +146,83 @@ function UserTable({ users }: { users: any[] }) {
                     </div>
                 ))}
             </div>
+
+
+            {/* Modal Create */}
+            {isCreateModalOpen && (
+                <div className="modal-overlay bg-black/50 fixed inset-0 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg">
+                        <h2 className="text-lg font-bold mb-4">สร้างผู้ใช้ใหม่</h2>
+                        <form onSubmit={handleAddUser} className="space-y-4">
+                            <input
+                                type="text"
+                                placeholder="ชื่อผู้ใช้"
+                                value={newUser.name}
+                                onChange={e =>
+                                    setNewUser({ ...newUser, name: e.target.value })
+                                }
+                                autoFocus
+                                className="w-full border rounded p-2"
+                                required
+                            />
+                            <input
+                                type="email"
+                                placeholder="อีเมล"
+                                value={newUser.email}
+                                onChange={e =>
+                                    setNewUser({ ...newUser, email: e.target.value })
+                                }
+                                className="w-full border rounded p-2"
+                                required
+                            />
+                            <input
+                                type="password"
+                                placeholder="รหัสผ่าน"
+                                value={newUser.password}
+                                onChange={e =>
+                                    setNewUser({ ...newUser, password: e.target.value })
+                                }
+                                className="w-full border rounded p-2"
+                                required
+                            />
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    บทบาท
+                                </label>
+                                <select
+                                    value={newUser.role}
+                                    onChange={(e) =>
+                                        setNewUser({ ...newUser, role: e.target.value as "user" | "admin" })
+                                    }
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                >
+                                    <option value="">-- เลือกบทบาท --</option>
+                                    <option value="user">ผู้ใช้ทั่วไป (user)</option>
+                                    <option value="admin">ผู้ดูแลระบบ (admin)</option>
+                                </select>
+                            </div>
+
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 bg-gray-300 rounded"
+                                    onClick={closeCreateModal}
+                                >
+                                    ยกเลิก
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded"
+                                >
+                                    บันทึก
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }
