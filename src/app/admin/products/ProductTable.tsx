@@ -33,6 +33,10 @@ function ProductTable({ products }: { products: Product[] }) {
     const [editProduct, setEditProduct] = useState<Product | null>(null);
     const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
+    const [idChecking, setIdChecking] = useState(false);
+    const [idExists, setIdExists] = useState(false);
+    const [checkTimeout, setCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+
     // Form data
     const [formData, setFormData] = useState({
         product_id: "",
@@ -78,6 +82,37 @@ function ProductTable({ products }: { products: Product[] }) {
         p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.product_id.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // ฟังก์ชันเช็คซ้ำแบบ debounce
+    const checkProductId = useCallback((value: string) => {
+        if (checkTimeout) clearTimeout(checkTimeout);
+
+        const trimmed = value.trim();
+        if (!trimmed) {
+            setIdExists(false);
+            setIdChecking(false);
+            return;
+        }
+
+        setIdChecking(true);
+        setIdExists(false);
+
+        const timeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/products/check-id/${encodeURIComponent(trimmed)}`, {
+                    cache: "no-store",
+                });
+                const data = await res.json();
+                setIdExists(data.exists === true);
+            } catch (err) {
+                setIdExists(true); // ถ้า error ให้สมมติว่ามีแล้ว (ปลอดภัยกว่า)
+            } finally {
+                setIdChecking(false);
+            }
+        }, 400); // รอ 400ms หลังหยุดพิมพ์
+
+        setCheckTimeout(timeout);
+    }, [checkTimeout]);
 
     // Modal handlers
     const openCreateModal = () => {
@@ -257,7 +292,25 @@ function ProductTable({ products }: { products: Product[] }) {
                     <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg">
                         <h2 className="text-lg font-bold mb-4">เพิ่มสินค้าใหม่</h2>
                         <form onSubmit={handleCreate} className="space-y-4">
-                            <input type="text" placeholder="รหัสสินค้า" value={formData.product_id} onChange={e => setFormData({ ...formData, product_id: e.target.value })} className="w-full border rounded p-2" required />
+                            <input
+                                type="text"
+                                placeholder="รหัสสินค้า (ไม่สามารถแก้ไขได้ภายหลัง)"
+                                value={formData.product_id}
+                                onChange={(e) => {
+                                    const value = e.target.value.toUpperCase(); // แปลงเป็นตัวพิมพ์ใหญ่เลยก็ได้
+                                    setFormData({ ...formData, product_id: value });
+                                    checkProductId(value);
+                                }}
+                                className={`w-full border rounded p-2 ${idExists ? "border-red-500" : "border-gray-300"}`}
+                                required
+                            />
+
+                            {/* แสดงสถานะใต้ input */}
+                            <div className="text-sm mt-1 h-5">
+                                {idChecking && <span className="text-blue-600">กำลังตรวจสอบ...</span>}
+                                {idExists && !idChecking && <span className="text-red-600">รหัสสินค้านี้มีในระบบแล้ว!</span>}
+                                {!idExists && !idChecking && formData.product_id && <span className="text-green-600">รหัสนี้ใช้ได้!</span>}
+                            </div>
                             <input type="text" placeholder="ชื่อสินค้า" value={formData.product_name} onChange={e => setFormData({ ...formData, product_name: e.target.value })} className="w-full border rounded p-2" required />
                             <input type="number" placeholder="ราคา" value={formData.product_price} onChange={e => setFormData({ ...formData, product_price: e.target.value })} className="w-full border rounded p-2" />
                             <input type="number" placeholder="จำนวน" value={formData.product_qty} onChange={e => setFormData({ ...formData, product_qty: e.target.value })} className="w-full border rounded p-2" />
@@ -267,7 +320,13 @@ function ProductTable({ products }: { products: Product[] }) {
                             </select>
                             <div className="flex justify-end space-x-2">
                                 <button type="button" onClick={closeCreateModal} className="px-4 py-2 bg-gray-300 rounded">ยกเลิก</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">บันทึก</button>
+                                <button
+                                    type="submit"
+                                    disabled={idChecking || idExists || !formData.product_id.trim()}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                >
+                                    {idChecking ? "กำลังตรวจสอบ..." : "บันทึก"}
+                                </button>
                             </div>
                         </form>
                     </div>
