@@ -147,7 +147,7 @@ export default function Dashboard() {
             </h2>
           </div>
 
-          <div className="p-6 max-h-96 overflow-y-auto">
+          <div className="p-6 ">
             {recentLogs.length === 0 ? (
               <div className="text-center py-16 text-gray-500">
                 <Activity className="w-16 h-16 mx-auto mb-4 text-gray-300" />
