@@ -39,7 +39,7 @@ export default async function HomePage() {
         {/* Hero Section */}
         <section className="text-center py-5">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Product List
+            AURA
           </h1>
 
           {!session ? (

@@ -24,7 +24,7 @@ export default function Nav() {
           <div className="flex items-center">
             <Link href="/admin" className="flex items-center gap-3">
               <div className="text-2xl font-bold text-gray-800 dark:text-white">
-                Product List
+                AURA
               </div>
             </Link>
           </div>

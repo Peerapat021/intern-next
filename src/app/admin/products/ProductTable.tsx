@@ -227,9 +227,9 @@ function ProductTable({ products }: { products: Product[] }) {
     };
 
     return (
-        <div className="p-4">
+        <div className="p-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
             <div>
-                <p className="border-b border-gray-200 py-2 text-lg font-semibold">
+                <p className="border-b border-gray-200 dark:border-gray-700 py-2 text-lg font-semibold text-gray-900 dark:text-white">
                     การจัดการสินค้า
                 </p>
 
@@ -241,16 +241,16 @@ function ProductTable({ products }: { products: Product[] }) {
                             placeholder="ค้นหาสินค้า..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full md:w-[550px] border border-gray-400 p-2 rounded-sm"
+                            className="w-full md:w-[550px] border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded-sm text-gray-900 dark:text-white"
                             autoFocus
                         />
                     </div>
                     <div className="flex flex-col md:flex-row gap-2">
-                        <button onClick={openCreateModal} className="border border-gray-200 rounded-full p-2 px-4 flex gap-2 items-center text-gray-700 hover:bg-gray-50 transition">
-                            <FaPlus /> เพิ่มสินค้า
+                        <button onClick={openCreateModal} className="border border-gray-200 dark:border-gray-700 rounded-full p-2 px-4 flex gap-2 items-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                            เพิ่มสินค้า
                         </button>
-                        <button className="border border-gray-200 rounded-full p-2 px-4 flex gap-2 items-center bg-[#4e6cef] text-white hover:bg-[#3b5bd6] transition">
-                            <FaDownload /> Download
+                        <button className="border border-gray-200 dark:border-gray-700 rounded-full p-2 px-4 flex gap-2 items-center bg-[#4e6cef] hover:bg-[#3b5bd6] text-white transition">
+                            Download
                         </button>
                     </div>
                 </div>
@@ -258,27 +258,27 @@ function ProductTable({ products }: { products: Product[] }) {
 
             {/* Desktop Table */}
             <div className="overflow-x-auto hidden md:block">
-                <table className="w-full border border-gray-200 min-w-[600px]">
+                <table className="w-full border border-gray-200 dark:border-gray-700 min-w-[600px] bg-white dark:bg-gray-800">
                     <thead>
-                        <tr className="border-b-2 border-[#4e6cef] shadow-md bg-gray-50">
-                            <th className="p-4 text-left">รหัสสินค้า</th>
-                            <th className="p-4 text-left">ชื่อสินค้า</th>
-                            <th className="p-4 text-left">ราคา</th>
-                            <th className="p-4 text-left">จำนวน</th>
-                            <th className="p-4 text-left">หมวดหมู่</th>
-                            <th className="p-4 text-left">วันที่เพิ่ม</th>
-                            <th className="p-4 text-left">จัดการ</th>
+                        <tr className="border-b-2 border-[#4e6cef] shadow-md bg-gray-50 dark:bg-gray-800">
+                            <th className="p-4 text-left text-gray-900 dark:text-white">รหัสสินค้า</th>
+                            <th className="p-4 text-left text-gray-900 dark:text-white">ชื่อสินค้า</th>
+                            <th className="p-4 text-left text-gray-900 dark:text-white">ราคา</th>
+                            <th className="p-4 text-left text-gray-900 dark:text-white">จำนวน</th>
+                            <th className="p-4 text-left text-gray-900 dark:text-white">หมวดหมู่</th>
+                            <th className="p-4 text-left text-gray-900 dark:text-white">วันที่เพิ่ม</th>
+                            <th className="p-4 text-left text-gray-900 dark:text-white">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredProducts.map((product) => (
-                            <tr key={product.product_id} className="hover:bg-gray-50 transition duration-150">
-                                <td className="p-4">{product.product_id}</td>
-                                <td className="p-4">{product.product_name}</td>
-                                <td className="p-4">{Number(product.product_price).toLocaleString()} บาท</td>
-                                <td className="p-4">{product.product_qty}</td>
-                                <td className="p-4">{getCategoryName(product.category_id)}</td>
-                                <td className="p-4">
+                            <tr key={product.product_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition duration-150">
+                                <td className="p-4 text-gray-800 dark:text-gray-200">{product.product_id}</td>
+                                <td className="p-4 text-gray-800 dark:text-gray-200">{product.product_name}</td>
+                                <td className="p-4 text-gray-800 dark:text-gray-200">{Number(product.product_price).toLocaleString()} บาท</td>
+                                <td className="p-4 text-gray-800 dark:text-gray-200">{product.product_qty}</td>
+                                <td className="p-4 text-gray-800 dark:text-gray-200">{getCategoryName(product.category_id)}</td>
+                                <td className="p-4 text-gray-600 dark:text-gray-400">
                                     {product.create_at_product ? new Date(product.create_at_product).toLocaleString("th-TH", {
                                         day: "numeric",
                                         month: "short",
@@ -304,32 +304,32 @@ function ProductTable({ products }: { products: Product[] }) {
             {/* Mobile Card View */}
             <div className="md:hidden">
                 {filteredProducts.map((product) => (
-                    <div key={product.product_id} className="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition bg-white mb-4">
+                    <div key={product.product_id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition bg-white dark:bg-gray-800 mb-4">
                         <div className="flex justify-between items-center mb-3">
-                            <h2 className="font-semibold text-gray-800">{product.product_name}</h2>
+                            <h2 className="font-semibold text-gray-800 dark:text-gray-200">{product.product_name}</h2>
                             <div className="flex gap-3">
-                                <button onClick={() => openEditModal(product)} className="text-blue-600 hover:text-blue-800 transition">
+                                <button onClick={() => openEditModal(product)} className="text-blue-600 hover:text-blue-800 transition dark:text-white">
                                     <FaEdit />
                                 </button>
-                                <button onClick={() => openDeleteModal(product)} className="text-red-600 hover:text-red-800 transition">
+                                <button onClick={() => openDeleteModal(product)} className="text-red-600 hover:text-red-800 transition dark:text-white">
                                     <FaTrash />
                                 </button>
                             </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-1"><span className="font-medium">รหัส:</span> {product.product_id}</p>
-                        <p className="text-sm text-gray-600 mb-1"><span className="font-medium">ราคา:</span> {Number(product.product_price).toLocaleString()} บาท</p>
-                        <p className="text-sm text-gray-600 mb-1"><span className="font-medium">จำนวน:</span> {product.product_qty}</p>
-                        <p className="text-sm text-gray-600 mb-1"><span className="font-medium">หมวดหมู่:</span> {getCategoryName(product.category_id)}</p>
-                        <p className="text-sm text-gray-600"><span className="font-medium">วันที่เพิ่ม:</span> {product.create_at_product ? new Date(product.create_at_product).toLocaleDateString("th-TH") : "-"}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1"><span className="font-medium">รหัส:</span> {product.product_id}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1"><span className="font-medium">ราคา:</span> {Number(product.product_price).toLocaleString()} บาท</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1"><span className="font-medium">จำนวน:</span> {product.product_qty}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1"><span className="font-medium">หมวดหมู่:</span> {getCategoryName(product.category_id)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400"><span className="font-medium">วันที่เพิ่ม:</span> {product.create_at_product ? new Date(product.create_at_product).toLocaleDateString("th-TH") : "-"}</p>
                     </div>
                 ))}
             </div>
 
             {/* Modal: เพิ่มสินค้า */}
             {newProduct && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-y-auto">
-                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg my-8">
-                        <h2 className="text-lg font-bold mb-4">เพิ่มสินค้าใหม่</h2>
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex justify-center items-center z-50 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] max-w-md shadow-lg my-8">
+                        <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">เพิ่มสินค้าใหม่</h2>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
                                 <input
@@ -341,26 +341,26 @@ function ProductTable({ products }: { products: Product[] }) {
                                         setFormData({ ...formData, product_id: val });
                                         checkProductId(val);
                                     }}
-                                    className={`w-full border rounded p-2 ${idExists ? "border-red-500" : "border-gray-300"}`}
+                                    className={`w-full border rounded p-2 ${idExists ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                                     required
                                 />
                                 <div className="text-sm mt-1 h-5">
-                                    {idChecking && <span className="text-blue-600">กำลังตรวจสอบ...</span>}
-                                    {idExists && !idChecking && <span className="text-red-600">รหัสนี้มีในระบบแล้ว!</span>}
-                                    {!idExists && !idChecking && formData.product_id && <span className="text-green-600">รหัสนี้ใช้ได้!</span>}
+                                    {idChecking && <span className="text-blue-600 dark:text-blue-400">กำลังตรวจสอบ...</span>}
+                                    {idExists && !idChecking && <span className="text-red-600 dark:text-red-400">รหัสนี้มีในระบบแล้ว!</span>}
+                                    {!idExists && !idChecking && formData.product_id && <span className="text-green-600 dark:text-green-400">รหัสนี้ใช้ได้!</span>}
                                 </div>
                             </div>
 
-                            <input type="text" placeholder="ชื่อสินค้า" value={formData.product_name} onChange={e => setFormData({ ...formData, product_name: e.target.value })} className="w-full border rounded p-2" required />
-                            <input type="number" placeholder="ราคา" value={formData.product_price} onChange={e => setFormData({ ...formData, product_price: e.target.value })} className="w-full border rounded p-2" required />
-                            <input type="number" placeholder="จำนวน" value={formData.product_qty} onChange={e => setFormData({ ...formData, product_qty: e.target.value })} className="w-full border rounded p-2" required />
-                            <select value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })} className="w-full border rounded p-2" required>
+                            <input type="text" placeholder="ชื่อสินค้า" value={formData.product_name} onChange={e => setFormData({ ...formData, product_name: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                            <input type="number" placeholder="ราคา" value={formData.product_price} onChange={e => setFormData({ ...formData, product_price: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                            <input type="number" placeholder="จำนวน" value={formData.product_qty} onChange={e => setFormData({ ...formData, product_qty: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                            <select value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                                 <option value="">เลือกหมวดหมู่</option>
                                 {categories.map(cat => <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>)}
                             </select>
 
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium">รูปภาพสินค้า</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">รูปภาพสินค้า</label>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -371,18 +371,18 @@ function ProductTable({ products }: { products: Product[] }) {
                                             setImagePreview(URL.createObjectURL(file));
                                         }
                                     }}
-                                    className="w-full border rounded p-2"
+                                    className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     required
                                 />
-                                {imagePreview && <img src={imagePreview} alt="Preview" className="w-full max-h-64 object-contain rounded border mt-2" />}
+                                {imagePreview && <img src={imagePreview} alt="Preview" className="w-full max-h-64 object-contain rounded border mt-2 border-gray-300 dark:border-gray-600" />}
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
-                                <button type="button" onClick={closeCreateModal} className="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">ยกเลิก</button>
+                                <button type="button" onClick={closeCreateModal} className="px-5 py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition text-gray-800 dark:text-gray-200">ยกเลิก</button>
                                 <button
                                     type="submit"
                                     disabled={idChecking || idExists || !formData.product_id.trim()}
-                                    className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded text-white transition"
                                 >
                                     {idChecking ? "กำลังตรวจสอบ..." : "เพิ่มสินค้า"}
                                 </button>
@@ -394,31 +394,29 @@ function ProductTable({ products }: { products: Product[] }) {
 
             {/* Modal: แก้ไขสินค้า */}
             {editProduct && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-y-auto">
-                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg my-8">
-                        <h2 className="text-lg font-bold mb-4">แก้ไขสินค้า</h2>
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex justify-center items-center z-50 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] max-w-md shadow-lg my-8">
+                        <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">แก้ไขสินค้า</h2>
                         <form onSubmit={handleUpdate} className="space-y-4">
-                            <input type="text" value={editProduct.product_id} disabled className="w-full border rounded p-2 bg-gray-100" />
+                            <input type="text" value={editProduct.product_id} disabled className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400" />
 
-                            <input type="text" placeholder="ชื่อสินค้า" value={editFormData.product_name} onChange={e => setEditFormData({ ...editFormData, product_name: e.target.value })} className="w-full border rounded p-2" required />
-                            <input type="number" placeholder="ราคา" value={editFormData.product_price} onChange={e => setEditFormData({ ...editFormData, product_price: e.target.value })} className="w-full border rounded p-2" required />
-                            <input type="number" placeholder="จำนวน" value={editFormData.product_qty} onChange={e => setEditFormData({ ...editFormData, product_qty: e.target.value })} className="w-full border rounded p-2" required />
-                            <select value={editFormData.category_id} onChange={e => setEditFormData({ ...editFormData, category_id: e.target.value })} className="w-full border rounded p-2" required>
+                            <input type="text" placeholder="ชื่อสินค้า" value={editFormData.product_name} onChange={e => setEditFormData({ ...editFormData, product_name: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                            <input type="number" placeholder="ราคา" value={editFormData.product_price} onChange={e => setEditFormData({ ...editFormData, product_price: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                            <input type="number" placeholder="จำนวน" value={editFormData.product_qty} onChange={e => setEditFormData({ ...editFormData, product_qty: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                            <select value={editFormData.category_id} onChange={e => setEditFormData({ ...editFormData, category_id: e.target.value })} className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                                 <option value="">เลือกหมวดหมู่</option>
                                 {categories.map(cat => <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>)}
                             </select>
 
-                            {/* รูปปัจจุบัน */}
                             {editProduct.product_image && !editImagePreview && (
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">รูปภาพปัจจุบัน</label>
-                                    <img src={editProduct.product_image} alt="Current" className="w-full max-h-64 object-contain rounded border" />
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">รูปภาพปัจจุบัน</label>
+                                    <img src={editProduct.product_image} alt="Current" className="w-full max-h-64 object-contain rounded border border-gray-300 dark:border-gray-600" />
                                 </div>
                             )}
 
-                            {/* เปลี่ยนรูปใหม่ */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium">เปลี่ยนรูปภาพ (ถ้าต้องการ)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">เปลี่ยนรูปภาพ (ถ้าต้องการ)</label>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -429,14 +427,14 @@ function ProductTable({ products }: { products: Product[] }) {
                                             setEditImagePreview(URL.createObjectURL(file));
                                         }
                                     }}
-                                    className="w-full border rounded p-2"
+                                    className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 />
-                                {editImagePreview && <img src={editImagePreview} alt="New preview" className="w-full max-h-64 object-contain rounded border mt-2" />}
+                                {editImagePreview && <img src={editImagePreview} alt="New preview" className="w-full max-h-64 object-contain rounded border mt-2 border-gray-300 dark:border-gray-600" />}
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
-                                <button type="button" onClick={closeEditModal} className="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">ยกเลิก</button>
-                                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                                <button type="button" onClick={closeEditModal} className="px-5 py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition text-gray-800 dark:text-gray-200">ยกเลิก</button>
+                                <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white transition">
                                     บันทึกการแก้ไข
                                 </button>
                             </div>
@@ -447,15 +445,15 @@ function ProductTable({ products }: { products: Product[] }) {
 
             {/* Modal: ลบสินค้า */}
             {deletingProduct && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-sm shadow-lg">
-                        <h2 className="text-lg font-bold mb-4 text-red-600">ยืนยันการลบ</h2>
-                        <p className="mb-6">
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex justify-center items-center z-50">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-[90%] max-w-sm shadow-lg">
+                        <h2 className="text-lg font-bold mb-4 text-red-600 dark:text-red-400">ยืนยันการลบ</h2>
+                        <p className="mb-6 text-gray-700 dark:text-gray-300">
                             คุณแน่ใจหรือไม่ที่จะลบสินค้า <span className="font-semibold">{deletingProduct.product_name}</span>?
                         </p>
                         <div className="flex justify-end gap-3">
-                            <button onClick={closeDeleteModal} className="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">ยกเลิก</button>
-                            <button onClick={confirmDelete} className="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">ยืนยันลบ</button>
+                            <button onClick={closeDeleteModal} className="px-5 py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition text-gray-800 dark:text-gray-200">ยกเลิก</button>
+                            <button onClick={confirmDelete} className="px-5 py-2 bg-red-600 hover:bg-red-700 rounded text-white transition">ยืนยันลบ</button>
                         </div>
                     </div>
                 </div>
