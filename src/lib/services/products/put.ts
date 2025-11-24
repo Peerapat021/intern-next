@@ -1,6 +1,6 @@
 
 
-export async function putProduct(data: { product_id: string, product_name: string, product_price: number, product_qty: number, category_id: number }) {
+export async function putProduct(data: { product_id: string, product_name: string, product_price: number, product_qty: number, category_id: number, product_image: string }) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${data.product_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

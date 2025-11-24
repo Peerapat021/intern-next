@@ -7,4 +7,6 @@ export type Product = {
     updated_at_product: string;
     category_id: number;
     user_id: string;
+
+    product_image: string;
 };

@@ -17,10 +17,11 @@ export async function saveLog({
     userId: string | number;
 }) {
     try {
+        const date = new Date();
         await db.query(
             `INSERT INTO product_logs 
        (product_id, action, old_value, new_value, error_message, is_error, changed_by, create_at_log)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 product_id,
                 action,
@@ -29,6 +30,7 @@ export async function saveLog({
                 error_message,
                 action === "failed" ? 1 : 0,
                 userId,
+                date
             ]
         );
     } catch (err) {

@@ -2,21 +2,9 @@
 
 import { FaEdit, FaTrash, FaDownload, FaPlus } from "react-icons/fa";
 import { getProducts } from "@/lib/services/products/get";
-import { postProduct } from "@/lib/services/products/post";
-import { putProduct } from "@/lib/services/products/put";
-import { deleteProduct } from "@/lib/services/products/delete";
 import { getCategories } from "@/lib/services/categories/get";
 import { useState, useEffect, useCallback } from "react";
-
-interface Product {
-    product_id: string;
-    product_name: string;
-    product_price: number;
-    product_qty: number;
-    category_id: number | string;
-    create_at_product?: string;
-    updated_at_product?: string;
-}
+import { Product } from "@/lib/types/products";
 
 interface Category {
     category_id: number;
@@ -33,6 +21,13 @@ function ProductTable({ products }: { products: Product[] }) {
     const [editProduct, setEditProduct] = useState<Product | null>(null);
     const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
+    // Image preview
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [editImageFile, setEditImageFile] = useState<File | null>(null);
+    const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+
+    // Check product_id ซ้ำ (debounce)
     const [idChecking, setIdChecking] = useState(false);
     const [idExists, setIdExists] = useState(false);
     const [checkTimeout, setCheckTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -77,13 +72,13 @@ function ProductTable({ products }: { products: Product[] }) {
         fetchCategories();
     }, []);
 
-    // Filter
+    // Filter products
     const filteredProducts = dataProducts.filter(p =>
         p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.product_id.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // ฟังก์ชันเช็คซ้ำแบบ debounce
+    // Debounce check product_id
     const checkProductId = useCallback((value: string) => {
         if (checkTimeout) clearTimeout(checkTimeout);
 
@@ -105,11 +100,11 @@ function ProductTable({ products }: { products: Product[] }) {
                 const data = await res.json();
                 setIdExists(data.exists === true);
             } catch (err) {
-                setIdExists(true); // ถ้า error ให้สมมติว่ามีแล้ว (ปลอดภัยกว่า)
+                setIdExists(true);
             } finally {
                 setIdChecking(false);
             }
-        }, 400); // รอ 400ms หลังหยุดพิมพ์
+        }, 400);
 
         setCheckTimeout(timeout);
     }, [checkTimeout]);
@@ -117,8 +112,12 @@ function ProductTable({ products }: { products: Product[] }) {
     // Modal handlers
     const openCreateModal = () => {
         setFormData({ product_id: "", product_name: "", product_price: "", product_qty: "", category_id: "" });
+        setImageFile(null);
+        setImagePreview(null);
+        setIdExists(false);
         setNewProduct(true);
     };
+
     const closeCreateModal = () => setNewProduct(false);
 
     const openEditModal = (product: Product) => {
@@ -129,57 +128,97 @@ function ProductTable({ products }: { products: Product[] }) {
             product_qty: product.product_qty.toString(),
             category_id: product.category_id.toString(),
         });
+        setEditImageFile(null);
+        setEditImagePreview(null);
     };
+
     const closeEditModal = () => setEditProduct(null);
 
     const openDeleteModal = (product: Product) => setDeletingProduct(product);
     const closeDeleteModal = () => setDeletingProduct(null);
 
-    // CRUD
+    // CREATE
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (idExists || idChecking || !formData.product_id.trim()) return;
+
+        const submitData = new FormData();
+        submitData.append("product_id", formData.product_id.trim().toUpperCase());
+        submitData.append("product_name", formData.product_name.trim());
+        submitData.append("product_price", formData.product_price);
+        submitData.append("product_qty", formData.product_qty);
+        submitData.append("category_id", formData.category_id);
+        if (imageFile) submitData.append("file", imageFile);
+
         try {
-            await postProduct({
-                product_id: formData.product_id.trim(),
-                product_name: formData.product_name.trim(),
-                product_price: Number(formData.product_price) || 0,
-                product_qty: Number(formData.product_qty) || 0,
-                category_id: Number(formData.category_id),
+            const res = await fetch("/api/products", {
+                method: "POST",
+                body: submitData,
             });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "เพิ่มสินค้าไม่สำเร็จ");
+
+            alert("เพิ่มสินค้าสำเร็จ!");
+            setImageFile(null);
+            setImagePreview(null);
             await fetchProducts();
             closeCreateModal();
         } catch (err: any) {
-            alert(err.response?.data?.error || "ไม่สามารถเพิ่มสินค้าได้");
+            alert(err.message || "เพิ่มสินค้าไม่สำเร็จ");
         }
     };
 
+    // UPDATE
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editProduct) return;
 
+        const submitData = new FormData();
+        submitData.append("product_name", editFormData.product_name.trim());
+        submitData.append("product_price", editFormData.product_price);
+        submitData.append("product_qty", editFormData.product_qty);
+        submitData.append("category_id", editFormData.category_id);
+        if (editImageFile) submitData.append("file", editImageFile);
+
         try {
-            await putProduct({
-                product_id: editProduct.product_id,
-                product_name: editFormData.product_name.trim(),
-                product_price: Number(editFormData.product_price) || 0,
-                product_qty: Number(editFormData.product_qty) || 0,
-                category_id: Number(editFormData.category_id),
+            const res = await fetch(`/api/products/${editProduct.product_id}`, {
+                method: "PUT",
+                body: submitData,
             });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "แก้ไขไม่สำเร็จ");
+
+            alert("แก้ไขสินค้าสำเร็จ!");
+            setEditImageFile(null);
+            setEditImagePreview(null);
             await fetchProducts();
             closeEditModal();
-        } catch (err) {
-            alert("ไม่สามารถอัปเดตสินค้าได้");
+        } catch (err: any) {
+            alert(err.message || "แก้ไขไม่สำเร็จ");
         }
     };
 
+    // DELETE
     const confirmDelete = async () => {
         if (!deletingProduct) return;
+
         try {
-            await deleteProduct(deletingProduct.product_id);
+            const res = await fetch(`/api/products/${deletingProduct.product_id}`, {
+                method: "DELETE",
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "ลบไม่สำเร็จ");
+            }
+
+            alert("ลบสินค้าสำเร็จ");
             await fetchProducts();
             closeDeleteModal();
-        } catch (err) {
-            alert("ไม่สามารถลบสินค้าได้");
+        } catch (err: any) {
+            alert(err.message || "ลบสินค้าไม่สำเร็จ");
         }
     };
 
@@ -286,46 +325,66 @@ function ProductTable({ products }: { products: Product[] }) {
                 ))}
             </div>
 
-            {/* Modal Create */}
+            {/* Modal: เพิ่มสินค้า */}
             {newProduct && (
-                <div className="modal-overlay bg-black/50 fixed inset-0 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg">
+                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-y-auto">
+                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg my-8">
                         <h2 className="text-lg font-bold mb-4">เพิ่มสินค้าใหม่</h2>
                         <form onSubmit={handleCreate} className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="รหัสสินค้า (ไม่สามารถแก้ไขได้ภายหลัง)"
-                                value={formData.product_id}
-                                onChange={(e) => {
-                                    const value = e.target.value.toUpperCase(); // แปลงเป็นตัวพิมพ์ใหญ่เลยก็ได้
-                                    setFormData({ ...formData, product_id: value });
-                                    checkProductId(value);
-                                }}
-                                className={`w-full border rounded p-2 ${idExists ? "border-red-500" : "border-gray-300"}`}
-                                required
-                            />
-
-                            {/* แสดงสถานะใต้ input */}
-                            <div className="text-sm mt-1 h-5">
-                                {idChecking && <span className="text-blue-600">กำลังตรวจสอบ...</span>}
-                                {idExists && !idChecking && <span className="text-red-600">รหัสสินค้านี้มีในระบบแล้ว!</span>}
-                                {!idExists && !idChecking && formData.product_id && <span className="text-green-600">รหัสนี้ใช้ได้!</span>}
+                            <div>
+                                <input
+                                    type="text"
+                                    placeholder="รหัสสินค้า (ไม่สามารถแก้ไขได้ภายหลัง)"
+                                    value={formData.product_id}
+                                    onChange={(e) => {
+                                        const val = e.target.value.toUpperCase();
+                                        setFormData({ ...formData, product_id: val });
+                                        checkProductId(val);
+                                    }}
+                                    className={`w-full border rounded p-2 ${idExists ? "border-red-500" : "border-gray-300"}`}
+                                    required
+                                />
+                                <div className="text-sm mt-1 h-5">
+                                    {idChecking && <span className="text-blue-600">กำลังตรวจสอบ...</span>}
+                                    {idExists && !idChecking && <span className="text-red-600">รหัสนี้มีในระบบแล้ว!</span>}
+                                    {!idExists && !idChecking && formData.product_id && <span className="text-green-600">รหัสนี้ใช้ได้!</span>}
+                                </div>
                             </div>
+
                             <input type="text" placeholder="ชื่อสินค้า" value={formData.product_name} onChange={e => setFormData({ ...formData, product_name: e.target.value })} className="w-full border rounded p-2" required />
-                            <input type="number" placeholder="ราคา" value={formData.product_price} onChange={e => setFormData({ ...formData, product_price: e.target.value })} className="w-full border rounded p-2" />
-                            <input type="number" placeholder="จำนวน" value={formData.product_qty} onChange={e => setFormData({ ...formData, product_qty: e.target.value })} className="w-full border rounded p-2" />
+                            <input type="number" placeholder="ราคา" value={formData.product_price} onChange={e => setFormData({ ...formData, product_price: e.target.value })} className="w-full border rounded p-2" required />
+                            <input type="number" placeholder="จำนวน" value={formData.product_qty} onChange={e => setFormData({ ...formData, product_qty: e.target.value })} className="w-full border rounded p-2" required />
                             <select value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })} className="w-full border rounded p-2" required>
                                 <option value="">เลือกหมวดหมู่</option>
                                 {categories.map(cat => <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>)}
                             </select>
-                            <div className="flex justify-end space-x-2">
-                                <button type="button" onClick={closeCreateModal} className="px-4 py-2 bg-gray-300 rounded">ยกเลิก</button>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium">รูปภาพสินค้า</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            setImageFile(file);
+                                            setImagePreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                    className="w-full border rounded p-2"
+                                    required
+                                />
+                                {imagePreview && <img src={imagePreview} alt="Preview" className="w-full max-h-64 object-contain rounded border mt-2" />}
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button type="button" onClick={closeCreateModal} className="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">ยกเลิก</button>
                                 <button
                                     type="submit"
                                     disabled={idChecking || idExists || !formData.product_id.trim()}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                    className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                                 >
-                                    {idChecking ? "กำลังตรวจสอบ..." : "บันทึก"}
+                                    {idChecking ? "กำลังตรวจสอบ..." : "เพิ่มสินค้า"}
                                 </button>
                             </div>
                         </form>
@@ -333,40 +392,70 @@ function ProductTable({ products }: { products: Product[] }) {
                 </div>
             )}
 
-            {/* Modal Edit */}
+            {/* Modal: แก้ไขสินค้า */}
             {editProduct && (
-                <div className="modal-overlay bg-black/50 fixed inset-0 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg">
+                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-y-auto">
+                    <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-lg my-8">
                         <h2 className="text-lg font-bold mb-4">แก้ไขสินค้า</h2>
                         <form onSubmit={handleUpdate} className="space-y-4">
                             <input type="text" value={editProduct.product_id} disabled className="w-full border rounded p-2 bg-gray-100" />
+
                             <input type="text" placeholder="ชื่อสินค้า" value={editFormData.product_name} onChange={e => setEditFormData({ ...editFormData, product_name: e.target.value })} className="w-full border rounded p-2" required />
-                            <input type="number" placeholder="ราคา" value={editFormData.product_price} onChange={e => setEditFormData({ ...editFormData, product_price: e.target.value })} className="w-full border rounded p-2" />
-                            <input type="number" placeholder="จำนวน" value={editFormData.product_qty} onChange={e => setEditFormData({ ...editFormData, product_qty: e.target.value })} className="w-full border rounded p-2" />
+                            <input type="number" placeholder="ราคา" value={editFormData.product_price} onChange={e => setEditFormData({ ...editFormData, product_price: e.target.value })} className="w-full border rounded p-2" required />
+                            <input type="number" placeholder="จำนวน" value={editFormData.product_qty} onChange={e => setEditFormData({ ...editFormData, product_qty: e.target.value })} className="w-full border rounded p-2" required />
                             <select value={editFormData.category_id} onChange={e => setEditFormData({ ...editFormData, category_id: e.target.value })} className="w-full border rounded p-2" required>
                                 <option value="">เลือกหมวดหมู่</option>
                                 {categories.map(cat => <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>)}
                             </select>
-                            <div className="flex justify-end space-x-2">
-                                <button type="button" onClick={closeEditModal} className="px-4 py-2 bg-gray-300 rounded">ยกเลิก</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">บันทึก</button>
+
+                            {/* รูปปัจจุบัน */}
+                            {editProduct.product_image && !editImagePreview && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">รูปภาพปัจจุบัน</label>
+                                    <img src={editProduct.product_image} alt="Current" className="w-full max-h-64 object-contain rounded border" />
+                                </div>
+                            )}
+
+                            {/* เปลี่ยนรูปใหม่ */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium">เปลี่ยนรูปภาพ (ถ้าต้องการ)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            setEditImageFile(file);
+                                            setEditImagePreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                    className="w-full border rounded p-2"
+                                />
+                                {editImagePreview && <img src={editImagePreview} alt="New preview" className="w-full max-h-64 object-contain rounded border mt-2" />}
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button type="button" onClick={closeEditModal} className="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">ยกเลิก</button>
+                                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                                    บันทึกการแก้ไข
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Modal Delete */}
+            {/* Modal: ลบสินค้า */}
             {deletingProduct && (
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg w-[90%] max-w-sm shadow-lg">
                         <h2 className="text-lg font-bold mb-4 text-red-600">ยืนยันการลบ</h2>
                         <p className="mb-6">
-                            คุณต้องการลบสินค้า <span className="font-semibold">{deletingProduct.product_name}</span> หรือไม่?
+                            คุณแน่ใจหรือไม่ที่จะลบสินค้า <span className="font-semibold">{deletingProduct.product_name}</span>?
                         </p>
-                        <div className="flex justify-end space-x-2">
-                            <button onClick={closeDeleteModal} className="px-4 py-2 bg-gray-300 rounded">ยกเลิก</button>
-                            <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white rounded">ยืนยันลบ</button>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={closeDeleteModal} className="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">ยกเลิก</button>
+                            <button onClick={confirmDelete} className="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">ยืนยันลบ</button>
                         </div>
                     </div>
                 </div>

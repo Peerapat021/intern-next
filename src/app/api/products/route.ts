@@ -1,10 +1,15 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { NextResponse } from "next/server";
 import { Product } from "@/lib/types/products";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 import { saveLog } from "@/lib/utils/saveLog";
+import path from "path";
+import { randomUUID } from "crypto";
+import { writeFile } from "fs/promises";
+const UPLOAD_DIR = path.join(process.cwd(), "public", "products");
 
 export async function GET() {
     try {
@@ -22,126 +27,87 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
-
-    // ตรวจสอบล็อกอิน
-    if (!session?.user) {
-        await saveLog({
-            product_id: null,
-            action: "failed",
-            error_message: "พยายามเพิ่มสินค้าโดยไม่ล็อกอิน",
-            userId: "anonymous"
-        });
-        return new Response("Unauthorized", { status: 401 });
-    }
-
-    // ตรวจสอบสิทธิ์ admin
-    if (session.user.role !== "admin") {
-        await saveLog({
-            product_id: null,
-            action: "failed",
-            error_message: `ผู้ใช้ไม่มีสิทธิ์: ${session.user.name || session.user.email}`,
-            userId: session.user.id
-        });
-        return new Response("Forbidden", { status: 403 });
-    }
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const userId = session.user.id;
 
     try {
-        const body = await request.json();
-        const { product_id, product_name, product_price, product_qty, category_id } = body;
+        const formData = await request.formData();
+        const file = formData.get("file") as File | null;
 
-        // ตรวจสอบข้อมูลไม่ครบ
-        if (!product_id || !product_name || !product_price || !product_qty || !category_id) {
-            await saveLog({
-                product_id,
-                action: "failed",
-                new_value: body,
-                error_message: "กรอกข้อมูลไม่ครบถ้วน",
-                userId
-            });
-            return new Response("กรุณากรอกข้อมูลที่จำเป็น", { status: 400 });
+        const product_id = formData.get("product_id") as string;
+        const product_name = formData.get("product_name") as string;
+        const product_price = formData.get("product_price") as string;
+        const product_qty = formData.get("product_qty") as string;
+        const category_id = formData.get("category_id") as string;
+
+        // ตรวจสอบข้อมูลครบ
+        if (!product_id || !product_name || !product_price || !product_qty || !category_id || !file) {
+            await saveLog({ product_id, action: "failed", error_message: "ข้อมูลหรือรูปภาพไม่ครบ", userId });
+            return NextResponse.json({ error: "กรุณากรอกข้อมูลและเลือกภาพสินค้า" }, { status: 400 });
         }
 
         const price = Number(product_price);
         const qty = Number(product_qty);
         if (isNaN(price) || isNaN(qty) || price < 0 || qty < 0) {
-            await saveLog({
-                product_id,
-                action: "failed",
-                new_value: body,
-                error_message: "ราคาหรือจำนวนไม่ถูกต้อง",
-                userId
-            });
-            return new Response("ราคาและจำนวนต้องเป็นตัวเลขที่มากกว่าหรือเท่ากับ 0", { status: 400 });
+            return NextResponse.json({ error: "ราคาหรือจำนวนไม่ถูกต้อง" }, { status: 400 });
         }
 
         // ตรวจสอบรหัสซ้ำ
-        const [existing] = await db.query<RowDataPacket[]>(
-            "SELECT product_id FROM products WHERE product_id = ?",
-            [product_id]
-        );
-        if (existing.length > 0) {
-            await saveLog({
-                product_id,
-                action: "failed",
-                new_value: body,
-                error_message: "รหัสสินค้านี้มีในระบบแล้ว",
-                userId
-            });
-            return new Response(
-                JSON.stringify({ error: "รหัสสินค้านี้มีในระบบแล้ว กรุณาใช้รหัสอื่น" }),
-                { status: 409, headers: { "Content-Type": "application/json" } }
-            );
+        const [exists] = await db.query<any[]>("SELECT 1 FROM products WHERE product_id = ?", [product_id]);
+        if (exists.length > 0) {
+            return NextResponse.json({ error: "รหัสสินค้านี้มีอยู่แล้ว" }, { status: 409 });
         }
 
-        // เพิ่มสินค้าสำเร็จ
-        const [result] = await db.query<ResultSetHeader>(
-            `INSERT INTO products 
-            (product_id, product_name, product_price, product_qty, category_id, create_at_product, user_id) 
-            VALUES (?, ?, ?, ?, ?, NOW(), ?)`,
-            [product_id, product_name, price, qty, category_id, userId]
-        );
+        // อัปโหลดรูปภาพ
+        if (file.size > 5 * 1024 * 1024) {
+            return NextResponse.json({ error: "รูปภาพใหญ่เกิน 5MB" }, { status: 400 });
+        }
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+        if (!allowedTypes.includes(file.type)) {
+            return NextResponse.json({ error: "รองรับเฉพาะไฟล์รูปภาพ" }, { status: 400 });
+        }
 
-        const newValue = { product_id, product_name, product_price: price, product_qty: qty, category_id };
+        const ext = path.extname(file.name).toLowerCase() || ".jpg";
+        const filename = `${randomUUID()}${ext}`;
+        const filepath = path.join(UPLOAD_DIR, filename);
+        await writeFile(filepath, Buffer.from(await file.arrayBuffer()));
+
+        const product_image = `/products/${filename}`;
+        
+        const date = new Date();
+        // บันทึกลง DB
+        await db.query(
+            `INSERT INTO products 
+       (product_id, product_name, product_price, product_qty, category_id, product_image, create_at_product, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [product_id, product_name, price, qty, category_id, product_image, date, userId]
+        );
 
         await saveLog({
             product_id,
             action: "add",
-            new_value: newValue,
-            userId
+            new_value: { product_id, product_name, product_price: price, product_qty: qty, category_id, product_image },
+            userId,
         });
 
-        return new Response(JSON.stringify({
+        return NextResponse.json({
             success: true,
-            data: { product_id, product_name, product_price: price, product_qty: qty, category_id }
-        }), {
-            status: 201,
-            headers: { "Content-Type": "application/json" },
-        });
+            data: { product_id, product_name, product_price: price, product_qty: qty, category_id, product_image },
+        }, { status: 201 });
 
     } catch (error: any) {
-        console.error("POST /api/products - Unhandled error:", error);
-
-        let body: any = null;  // เพิ่มบรรทัดนี้ด้านบน try
-
-        try {
-            body = await request.json();  
-            const { product_id, product_name, product_price, product_qty, category_id } = body;
-        } catch (error: any) {
-            console.error("POST /api/products - Unhandled error:", error);
-
-            await saveLog({
-                product_id: body?.product_id || "unknown",
-                action: "failed",
-                new_value: body || null,
-                error_message: error.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุในระบบ",
-                userId: userId || "unknown"
-            });
-
-            return new Response("ไม่สามารถเพิ่มข้อมูลได้ เกิดข้อผิดพลาดในระบบ", { status: 500 });
-        }
-
-        return new Response("ไม่สามารถเพิ่มข้อมูลได้ เกิดข้อผิดพลาดในระบบ", { status: 500 });
+        console.error("POST /api/products error:", error);
+        await saveLog({
+            product_id: "unknown",
+            action: "failed",
+            error_message: error.message,
+            userId: userId || "unknown",
+        });
+        return NextResponse.json({ error: "เพิ่มสินค้าไม่สำเร็จ" }, { status: 500 });
     }
 }
+
+// ต้องปิด bodyParser เพราะใช้ FormData
+export const config = { api: { bodyParser: false } };

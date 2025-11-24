@@ -1,6 +1,6 @@
 
 
-export async function postProduct(data: { product_id: string, product_name: string, product_price: number, product_qty: number, category_id: number }) {
+export async function postProduct(data: { product_id: string, product_name: string, product_price: number, product_qty: number, category_id: number ,product_image: string }) {
     const res = await fetch(`/api/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
