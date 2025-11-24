@@ -29,7 +29,10 @@ export default function MainLayout({
     <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <Providers>
         <Navbar />
-        {children}
+        {/* เพิ่ม padding-top เพื่อให้เนื้อหาไม่ถูกบัง และ padding-bottom สำหรับ mobile menu */}
+        <main className="pt-16 pb-20 sm:pb-0">
+          {children}
+        </main>
       </Providers>
     </div>
   );
