@@ -132,4 +132,4 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 }
 
-export const config = { api: { bodyParser: false } };
+// export const config = { api: { bodyParser: false } };

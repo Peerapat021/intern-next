@@ -109,5 +109,4 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// ต้องปิด bodyParser เพราะใช้ FormData
-export const config = { api: { bodyParser: false } };
+// export const config = { api: { bodyParser: false } };
